@@ -10,15 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 846de08b2ec56394dbdd19bac035ad86, type: 3}
-  m_Name: Phase1_EarlyShift
+  m_Name: Phase5_LateShift 2
   m_EditorClassIdentifier: 
-  phaseNumber: 1
+  phaseNumber: 5
   durationInSeconds: 600
-  minItemsPerCustomer: 1
-  maxItemsPerCustomer: 3
+  minItemsPerCustomer: 12
+  maxItemsPerCustomer: 15
   availableItems:
   - {fileID: 11400000, guid: 513243c3d8a27f74791f812ec012f5fe, type: 2}
-  - {fileID: 11400000, guid: 63902630edd28274fa854b301d98318c, type: 2}
-  - {fileID: 11400000, guid: 7d7e737a5b1a4d248a448bf4cc84e256, type: 2}
-  minSpawnInterval: 20
-  maxSpawnInterval: 40
+  minSpawnInterval: 2
+  maxSpawnInterval: 5
