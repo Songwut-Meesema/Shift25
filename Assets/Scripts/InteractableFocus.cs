@@ -30,5 +30,7 @@ namespace Shift25.Gameplay
             
             _outline.enabled = (distance < focusDistance); //enable outline if within focus distance
         }
+
+        
     }
 }

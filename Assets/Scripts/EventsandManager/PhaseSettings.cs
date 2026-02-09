@@ -2,18 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "PhaseSettings", menuName = "Shift25/Phase Settings")]
-public class PhaseSettings : ScriptableObject
+namespace Shift25.Managers // [Namespace Fix] ให้อยู่บ้านเดียวกับ GamePhaseManager
 {
-    public int phaseNumber;
-    public float durationInSeconds; // ระยะเวลาของ Phase นี้
+    [CreateAssetMenu(fileName = "PhaseSettings", menuName = "Shift25/Phase Settings")]
+    public class PhaseSettings : ScriptableObject
+    {
+        public int phaseNumber;
+        public float durationInSeconds;
 
-    [Header("Scanning Logic")]
-    public int minItemsPerCustomer; // สุ่มจำนวนชิ้นขั้นต่ำ
-    public int maxItemsPerCustomer; // สุ่มจำนวนชิ้นสูงสุด
-    public List<ScanItemData> availableItems; // รายการสินค้าที่อาจโผล่มาใน Phase นี้
+        [Header("NPC & Queue Capacity")]
+        public int maxNPCInStore; 
+        public float minSpawnInterval;
+        public float maxSpawnInterval;
 
-    [Header("Customer Flow")]
-    public float minSpawnInterval; // ลูกค้าจะเข้าเร็วสุดกี่วินาที
-    public float maxSpawnInterval; // ลูกค้าจะเข้าช้าสุดกี่วินาที
+        [Header("Item Scanning Data")]
+        public int minItemsPerCustomer;
+        public int maxItemsPerCustomer;
+        public List<ScanItemData> availableItems; // ลาก ScanItemData อะไรใส่ก็ได้
+
+        [Header("Microwave Data")]
+        public List<Shift25.Gameplay.MicrowaveRequestData> availableMicrowaveRequests;
+    }
 }

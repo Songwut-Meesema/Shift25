@@ -1,48 +1,72 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using Shift25.Managers;
+using Shift25.Managers; 
 
 namespace Shift25.NPC
 {
     public class CustomerNPC : MonoBehaviour, IInteractable
     {
+        // [Data-Driven] รายการสินค้าที่ลูกค้าคนนี้ถืออยู่
         private List<ScanItemData> _randomizedCart = new List<ScanItemData>();
+        
         [SerializeField] private string prompt = "Press E to Scan Items";
 
+        // [Lambda] ส่งค่า Prompt ไปแสดงที่หน้าจอ
         public string InteractionPrompt => prompt;
 
-        private void Start()
+        // เมื่อ NPC ถูกเปิดใช้งาน (ใช้ร่วมกับ Object Pooling)
+        private void OnEnable()
         {
-            // [Logic] เมื่อลูกค้าถูกสร้างขึ้น ให้ทำการสุ่มของในรถเข็นทันที
-            GenerateRandomCart();
+            // ล้างข้อมูลเก่าทิ้งทุกครั้งที่ลูกค้าคนใหม่ (หรือตัวเดิมที่วนกลับมา) ปรากฏตัว
+            _randomizedCart.Clear();
         }
 
-        private void GenerateRandomCart()
+        // [Logic] ฟังก์ชันสุ่มสินค้าใหม่โดยอิงตาม Phase ปัจจุบัน
+        private void GenerateRandomCartForCurrentPhase()
         {
-            // [Null Safety] เช็คก่อนว่า Phase Manager พร้อมทำงานไหม
-            var settings = GamePhaseManager.Instance?.CurrentPhase;
-            if (settings == null || settings.availableItems.Count == 0) return;
+            // [Singleton] ดึงข้อมูลจาก Phase Manager
+            var currentPhase = GamePhaseManager.Instance?.CurrentPhase;
+            
+            if (currentPhase == null)
+            {
+                Debug.LogError("[CustomerNPC] GamePhaseManager or CurrentPhase is null!");
+                return;
+            }
 
-            // [Logic] สุ่มจำนวนชิ้นตามช่วงที่ Phase กำหนด
-            int itemCount = Random.Range(settings.minItemsPerCustomer, settings.maxItemsPerCustomer + 1);
+            // ล้างตะกร้าเก่าก่อนสุ่มใหม่
+            _randomizedCart.Clear();
+
+            // [Logic] สุ่มจำนวนสินค้าตามค่า Min/Max ของ Phase ปัจจุบัน
+            int itemCount = Random.Range(currentPhase.minItemsPerCustomer, currentPhase.maxItemsPerCustomer + 1);
 
             for (int i = 0; i < itemCount; i++)
             {
-                // [Logic] สุ่มเลือกสินค้าจากรายการที่อนุญาตใน Phase นี้
-                int randomIndex = Random.Range(0, settings.availableItems.Count);
-                _randomizedCart.Add(settings.availableItems[randomIndex]);
+                // [Logic] สุ่มเลือกไอเทมจากรายการที่มีให้ใน Phase นี้
+                if (currentPhase.availableItems.Count > 0)
+                {
+                    int randomIndex = Random.Range(0, currentPhase.availableItems.Count);
+                    _randomizedCart.Add(currentPhase.availableItems[randomIndex]);
+                }
             }
+
+            Debug.Log($"[CustomerNPC] Phase {currentPhase.phaseNumber}: Randomized {itemCount} items.");
         }
 
         public void Interact()
         {
-            if (_randomizedCart.Count == 0) return;
+            // [Critical Logic] สุ่มของใหม่ "ทันที" ที่มีการ Interact 
+            // เพื่อให้แน่ใจว่าจำนวนสินค้าอัปเดตตาม Phase ล่าสุดจริงๆ
+            GenerateRandomCartForCurrentPhase();
 
-            // [Singleton Pattern] ส่งสินค้าที่สุ่มได้ไปให้ ScanManager
+            if (_randomizedCart.Count == 0)
+            {
+                Debug.LogWarning("[CustomerNPC] Cart is empty, trying to re-roll...");
+                return;
+            }
+
+            // [UniTask] ส่งสินค้าเข้าสู่ระบบ ScanManager
             ScanManager.Instance.StartScanSession(_randomizedCart).Forget();
-            
-            // เมื่อสแกนเสร็จ (ในอนาคต) ลูกค้าจะเดินออกจากร้านและสุ่มของใหม่ถ้าใช้ Object Pooling
         }
     }
 }
